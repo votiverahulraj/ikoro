@@ -39,9 +39,9 @@ class GigController extends Controller
             'price' => ['nullable', 'string'],
             'minutes' => ['nullable', 'string'],
             'status' => ['nullable', 'string'],
-            'country_id' => ['required', 'integer'],
-            'state_id' => ['required', 'integer'],
-            'city_id' => ['required', 'integer'],
+            'country_id' => ['nullable', 'integer'],
+            'state_id' => ['nullable', 'integer'],
+            'city_id' => ['nullable', 'integer'],
             'zip_id' => ['nullable', 'integer'],
 
             'price30min' => ['nullable', 'integer'],
@@ -49,8 +49,10 @@ class GigController extends Controller
             'price90min' => ['nullable', 'integer'],
             'price120min' => ['nullable', 'integer'],
 
-            // Mapbox address fields
+            // Mapbox address fields (note: Mapbox modifies the name attribute)
             'address-line1' => ['nullable', 'string', 'max:255'],
+            'address-line1 address-search' => ['nullable', 'string', 'max:255'],
+            'address-line1_address-search' => ['nullable', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
             'address-level2' => ['nullable', 'string', 'max:255'],
@@ -62,9 +64,13 @@ class GigController extends Controller
         $validatedData['host_id'] = Auth::user()->id;
 
         // Map Mapbox field names to database column names
-        if (isset($validatedData['address-line1'])) {
-            $validatedData['address'] = $validatedData['address-line1'];
+        // Mapbox changes the name to "address-line1_address-search" or "address-line1 address-search"
+        $addressField = $validatedData['address-line1_address-search'] ?? $validatedData['address-line1 address-search'] ?? $validatedData['address-line1'] ?? null;
+        if ($addressField) {
+            $validatedData['address'] = $addressField;
             unset($validatedData['address-line1']);
+            unset($validatedData['address-line1 address-search']);
+            unset($validatedData['address-line1_address-search']);
         }
         if (isset($validatedData['address-level2'])) {
             $validatedData['city'] = $validatedData['address-level2'];
@@ -74,6 +80,17 @@ class GigController extends Controller
             $validatedData['state'] = $validatedData['address-level1'];
             unset($validatedData['address-level1']);
         }
+
+        // Debug: Log address data (you can remove this after testing)
+        \Log::info('Mapbox Address Data:', [
+            'address' => $validatedData['address'] ?? 'not set',
+            'latitude' => $validatedData['latitude'] ?? 'not set',
+            'longitude' => $validatedData['longitude'] ?? 'not set',
+            'city' => $validatedData['city'] ?? 'not set',
+            'state' => $validatedData['state'] ?? 'not set',
+            'country' => $validatedData['country'] ?? 'not set',
+            'postcode' => $validatedData['postcode'] ?? 'not set',
+        ]);
 
         $features = $request->input('features');
         $gigId = $request->input('gig_id');

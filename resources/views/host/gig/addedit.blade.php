@@ -544,7 +544,7 @@
                             <div class="form-group col-md-12">
                                 <x-input-label for="address" :value="__('address')" />
 
-                                <input class="input mb12" autocomplete="address-line1" name="address-line1" value="{{ $gig['address'] ?? old('address-line1') }}" required="">
+                                <input id="address-line1" class="input mb12" autocomplete="address-line1" name="address-line1" value="{{ $gig['address'] ?? old('address-line1') }}" required="">
 
                                 <input type="hidden" name="latitude" id="latitude" value="{{ $gig['latitude'] ?? old('latitude') }}">
                                 <input type="hidden" name="longitude" id="longitude" value="{{ $gig['longitude'] ?? old('longitude') }}">
@@ -916,7 +916,7 @@
 
 
 
-    <script>
+    <!-- <script>
 
         const ACCESS_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
 
@@ -930,7 +930,7 @@
 
         });
 
-    </script>
+    </script> -->
 
     <script>
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
@@ -1035,6 +1035,35 @@ window.addEventListener('load', async () => {
         }
       } else {
         console.warn('[map] feature.geometry.coordinates missing; feature:', feature);
+      }
+
+      // Populate the address field with the full address
+      const addressInput = document.getElementById('address-line1');
+      if (addressInput) {
+        // Build full address from available fields
+        const cityInput = document.getElementById('address-level2');
+        const stateInput = document.getElementById('address-level1');
+        const countryInput = document.getElementById('country');
+        const postcodeInput = document.getElementById('postcode');
+
+        // Wait a bit for Mapbox to populate other fields, then construct address
+        setTimeout(() => {
+          const addressParts = [];
+          if (cityInput && cityInput.value) addressParts.push(cityInput.value);
+          if (stateInput && stateInput.value) addressParts.push(stateInput.value);
+          if (postcodeInput && postcodeInput.value) addressParts.push(postcodeInput.value);
+          if (countryInput && countryInput.value) addressParts.push(countryInput.value);
+
+          const constructedAddress = addressParts.join(', ');
+
+          // If address input is empty, fill it with constructed address
+          if (!addressInput.value && constructedAddress) {
+            addressInput.value = constructedAddress;
+            console.log('[map] address field populated with constructed address:', constructedAddress);
+          } else {
+            console.log('[map] address field already has value:', addressInput.value);
+          }
+        }, 500);
       }
     });
   }
