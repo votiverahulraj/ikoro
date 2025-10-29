@@ -229,72 +229,64 @@ class HomeController extends Controller
         $data['tasks'] = Task::all();
         $where = [];
 
-        // if ($request->filled('city_id')) {
-        //     $where['city_id'] = $request->input('city_id');
-        // }
+        // Start building the gig query
+        $gigs = Gig::query();
 
-        // if ($request->filled('equipment_id')) {
-        //     $where['equipment_id'] = $request->input('equipment_id');
-        // }
+        // Geographic filtering using latitude/longitude from Mapbox
+        if ($request->filled('destination_latitude') && $request->filled('destination_longitude')) {
+            $searchLat = $request->input('destination_latitude');
+            $searchLng = $request->input('destination_longitude');
+            $radiusKm = 50; // Default search radius in kilometers
 
-        if ($request->filled('location_id') && $request->filled('location_type')) {
-            $locationId = $request->input('location_id');
-            $locationType = $request->input('location_type');
+            // Use Haversine formula to calculate distance
+            // Filter gigs within specified radius of search location
+            $gigs->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->whereRaw("
+                    (6371 * acos(
+                        cos(radians(?)) * cos(radians(latitude)) *
+                        cos(radians(longitude) - radians(?)) +
+                        sin(radians(?)) * sin(radians(latitude))
+                    )) <= ?
+                ", [$searchLat, $searchLng, $searchLat, $radiusKm]);
+
+            // Log search with location data (check for duplicate by lat/lng)
             $locationName = $request->input('location_name', '');
+            if ($locationName) {
+                // Check if this location was searched before (within 0.01 degree tolerance ~1km)
+                $existingLog = DestinationSearchLog::where('location_type', 'Mapbox')
+                    ->whereBetween('latitude', [$searchLat - 0.01, $searchLat + 0.01])
+                    ->whereBetween('longitude', [$searchLng - 0.01, $searchLng + 0.01])
+                    ->first();
 
-            // Track search frequency
-            $relatedIds = [];
-            if ($locationType === 'City') {
-                $where['city_id'] = $locationId;
-                $city = City::with(['state.country'])->find($locationId);
-                if ($city) {
-                    $relatedIds = [
-                        'city_id' => $city->id,
-                        'state_id' => $city->state_id,
-                        'country_id' => $city->state->country_id ?? null,
-                    ];
-                }
-            } elseif ($locationType === 'State') {
-                $where['state_id'] = $locationId;
-                $state = State::with('country')->find($locationId);
-                if ($state) {
-                    $relatedIds = [
-                        'state_id' => $state->id,
-                        'country_id' => $state->country_id,
-                    ];
-                }
-            } elseif ($locationType === 'Country') {
-                $where['country_id'] = $locationId;
-                $relatedIds = ['country_id' => $locationId];
-            } elseif ($locationType === 'Zipcode') {
-                $where['zip_id'] = $locationId;
-                $zipcode = Zipcode::with(['city.state.country'])->find($locationId);
-                if ($zipcode) {
-                    $relatedIds = [
-                        'zip_id' => $zipcode->id,
-                        'city_id' => $zipcode->city_id,
-                        'state_id' => $zipcode->city->state_id ?? null,
-                        'country_id' => $zipcode->city->state->country_id ?? null,
-                    ];
+                if ($existingLog) {
+                    $existingLog->increment('search_count');
+                    $existingLog->update(['last_searched_at' => now()]);
+                } else {
+                    DestinationSearchLog::create([
+                        'location_type' => 'Mapbox',
+                        'location_id' => 0,
+                        'full_location_name' => $locationName,
+                        'latitude' => $searchLat,
+                        'longitude' => $searchLng,
+                        'search_count' => 1,
+                        'last_searched_at' => now(),
+                    ]);
                 }
             }
-
-            // Log the search
-            DestinationSearchLog::logSearch($locationType, $locationId, $locationName, $relatedIds);
         }
 
+        // Task filtering
         if ($request->filled('task_id')) {
             $where['task_id'] = $request->input('task_id');
-        }     
+        }
 
-        $gigs = Gig::where($where);
+        // Apply basic where conditions
+        if (!empty($where)) {
+            $gigs->where($where);
+        }
 
-        // if ($request->filled('gender')) {
-        //     $gender = $request->input('gender');
-        //     $gigs->whereHas('host', function ($query) use ($gender) {
-        //         $query->where('gender', $gender);
-        //     });
-        // }
+        // Host status and gender filtering
         $gigs->whereHas('host', function ($query) use ($request) {
             $query->where('status', 1);
 
@@ -302,17 +294,16 @@ class HomeController extends Controller
                 $query->where('gender', $request->input('gender'));
             }
         });
-        
-        if($request->filled('is_open')){           
-            $is_open = strtolower(date('D')) . '_is_open' ? 1 : '';
-            $gigs->whereHas('host', function ($query) use ($is_open) {
+
+        // Host availability filtering (is_open)
+        if ($request->filled('is_open')) {
+            $gigs->whereHas('host', function ($query) {
                 $today_is_open = strtolower(date('D')) . '_is_open';
-                $query->where($today_is_open, $is_open);
+                $query->where($today_is_open, 1);
             });
         }
 
         $data['gigs'] = $gigs->paginate(6)->appends($request->all());
-        // dd($data);
         return view('pages.gig-filter-host', $data);
     }
 

@@ -16,21 +16,19 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/assets/owl.carousel.min.css"
             rel="stylesheet" />
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/style.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
         <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-        <script src="{{ asset('frontend/assets/js/destination-search.js') }}" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/web.js"></script>
+        {{-- Old search disabled in favor of Mapbox: <script src="{{ asset('frontend/assets/js/destination-search.js') }}" defer></script> --}}
 
         <style>
             .select-host-click {
                 cursor: pointer;
             }
 
-            div#cityDropdown {
-                top: 34% !important;
-                left: 21%;
-            }
 
             .custom-card {
                 border: none;
@@ -271,7 +269,7 @@
                 @csrf
                 <div class="container search-destinations">
                     <!-- Destination Section -->
-                    @php
+                    <!-- @php
                         $locationName = '';
 
                         if (old('location_id') || request('location_id')) {
@@ -290,22 +288,24 @@
                                 $locationName = $location->name . '-' . $type;
                             }
                         }
-                    @endphp
+                    @endphp -->
 
                     <div class="mobile-add-destination">
                     <div class="destination-section">
                         <input type="text" name="location_name" id="citySearchByInput" class="search-destination"
-                            data-url="{{ route('search.cities') }}" placeholder="Search destinations" required
-                            autocomplete="off" value="{{ $locationName }}" />
+                            placeholder="Search destinations"
+                            autocomplete="address-line1" value="" />
 
                         <input type="hidden" name="location_id" id="selectedCityId"
                             value="{{ old('location_id', request('location_id')) }}">
                         <input type="hidden" name="location_type" id="locationType"
                             value="{{ old('location_type', request('location_type')) }}">
-                        {{-- <input type="text" name="location" id="locationSearchInput" class="search-destination"
-                            data-url="{{ route('search.locations') }}" placeholder="Search destinations" required
-                            autocomplete="off" /> --}}
-                        <div id="cityDropdown" class="dropdown-menu"></div>
+                        <input type="hidden" name="destination_latitude" id="destination_latitude">
+                        <input type="hidden" name="destination_longitude" id="destination_longitude">
+                        <input type="hidden" name="destination_city" id="destination_city">
+                        <input type="hidden" name="destination_state" id="destination_state">
+                        <input type="hidden" name="destination_country" id="destination_country">
+                        <input type="hidden" name="destination_postcode" id="destination_postcode">
 
                      <i class="fa fa-location-arrow container location-add" aria-hidden="true"></i>
 
@@ -390,7 +390,7 @@
                 <div class="container">
                     <h3 class="text-center mb-3" style="color: #222; font-weight: 700;">Popular Destinations</h3>
                     <div id="destination-map" style="height: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
-                    <div id="map-legend" class="map-legend">
+                    <!-- <div id="map-legend" class="map-legend">
                         <div class="legend-item">
                             <span class="legend-icon" style="background-color: #FF5A5F;"></span>
                             <span class="legend-text" style="color: #222;">Most Searched</span>
@@ -399,7 +399,7 @@
                             <span class="legend-icon" style="background-color: #00A699;"></span>
                             <span class="legend-text" style="color: #222;">Popular</span>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -454,9 +454,102 @@
             let host = @json($where ?? []);
         </script>
 
-        <!-- Mapbox Destination Map Initialization -->
+        <!-- Mapbox Search Autofill for Destination Input -->
         <script>
             const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
+
+            // Initialize Mapbox Address Autofill for search input
+            window.addEventListener('load', () => {
+                const searchInput = document.getElementById('citySearchByInput');
+
+                if (!searchInput) {
+                    console.warn('[Search] Input element not found');
+                    return;
+                }
+
+                if (typeof mapboxsearch === 'undefined') {
+                    console.warn('[Search] Mapbox Search library not loaded');
+                    return;
+                }
+
+                try {
+                    // Initialize with proper configuration
+                    mapboxsearch.config.accessToken = MAPBOX_TOKEN;
+
+                    const searchAutofill = mapboxsearch.autofill({
+                        options: {
+                            language: 'en',
+                            country: 'ng', // Nigeria (lowercase)
+                        }
+                    });
+
+                    console.log('[Search] Mapbox autofill initialized');
+
+                    // Listen for address selection
+                    searchInput.addEventListener('retrieve', (e) => {
+                        console.log('[Search] Address selected:', e);
+
+                        if (!e.detail || !e.detail.features || !e.detail.features.length) {
+                            console.warn('[Search] No features in event');
+                            return;
+                        }
+
+                        const feature = e.detail.features[0];
+                        console.log('[Search] Feature:', feature);
+
+                        if (feature && feature.geometry && feature.geometry.coordinates) {
+                            // Get coordinates
+                            const [lng, lat] = feature.geometry.coordinates;
+                            document.getElementById('destination_latitude').value = lat;
+                            document.getElementById('destination_longitude').value = lng;
+
+                            // Extract address components
+                            let city = '', state = '', country = '', postcode = '';
+
+                            if (feature.properties) {
+                                // Try to get from properties
+                                if (feature.properties.context) {
+                                    Object.values(feature.properties.context).forEach(item => {
+                                        if (item.id) {
+                                            if (item.id.startsWith('place')) city = item.text || item.name;
+                                            if (item.id.startsWith('region')) state = item.text || item.name;
+                                            if (item.id.startsWith('country')) country = item.text || item.name;
+                                            if (item.id.startsWith('postcode')) postcode = item.text || item.name;
+                                        }
+                                    });
+                                }
+
+                                // Fallback to direct properties
+                                city = city || feature.properties.place || '';
+                                state = state || feature.properties.region || '';
+                                country = country || feature.properties.country || '';
+                                postcode = postcode || feature.properties.postcode || '';
+                            }
+
+                            document.getElementById('destination_city').value = city;
+                            document.getElementById('destination_state').value = state;
+                            document.getElementById('destination_country').value = country;
+                            document.getElementById('destination_postcode').value = postcode;
+
+                            // Format display value
+                            const fullLocation = [city, state, country].filter(Boolean).join(', ');
+                            if (fullLocation) {
+                                searchInput.value = fullLocation;
+                            }
+
+                            console.log('[Search] Location captured:', {
+                                lat, lng, city, state, country, postcode
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('[Search] Error initializing Mapbox autofill:', error);
+                }
+            });
+        </script>
+
+        <!-- Mapbox Destination Map Initialization -->
+        <script>
             const topDestinations = @json($topDestinations ?? []);
 
             // Initialize map on page load
