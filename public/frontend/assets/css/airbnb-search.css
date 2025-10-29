@@ -1,0 +1,359 @@
+/* Airbnb-Style Search Interface */
+
+/* Search Container */
+.search-destinations {
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    transition: box-shadow 0.2s ease;
+}
+
+.search-destinations:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile responsive container */
+.mobile-add-destination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+/* Destination Section */
+.destination-section {
+    position: relative;
+    flex: 2;
+    min-width: 200px;
+}
+
+.search-destination {
+    border: none;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    background: transparent;
+    color: #222;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+}
+
+.search-destination:hover {
+    background-color: #f7f7f7;
+}
+
+.search-destination:focus {
+    background-color: #f7f7f7;
+}
+
+.search-destination::placeholder {
+    color: #717171;
+    font-weight: 400;
+}
+
+/* Service Section */
+.service-section {
+    flex: 1.5;
+    min-width: 150px;
+}
+
+.choose-service {
+    border: none;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    background: transparent;
+    color: #222;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.choose-service:hover {
+    background-color: #f7f7f7;
+}
+
+.choose-service:focus {
+    background-color: #f7f7f7;
+}
+
+/* Tool Services Container */
+.tool-services-add {
+    display: flex;
+    gap: 8px;
+    flex: 2;
+}
+
+/* Tool Section */
+.tool-section {
+    flex: 1;
+    min-width: 120px;
+}
+
+.choose-tool {
+    border: none;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    background: transparent;
+    color: #222;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.choose-tool:hover {
+    background-color: #f7f7f7;
+}
+
+.choose-tool:focus {
+    background-color: #f7f7f7;
+}
+
+/* Gender Section */
+.gender-section {
+    flex: 1;
+    min-width: 120px;
+}
+
+.choose-gender {
+    border: none;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100%;
+    outline: none;
+    background: transparent;
+    color: #222;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.choose-gender:hover {
+    background-color: #f7f7f7;
+}
+
+.choose-gender:focus {
+    background-color: #f7f7f7;
+}
+
+/* Search Button */
+.search-button {
+    flex-shrink: 0;
+}
+
+.search-button button {
+    background: linear-gradient(90deg, #FF5A5F 0%, #FF385C 100%);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(255, 56, 92, 0.3);
+}
+
+.search-button button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 56, 92, 0.4);
+}
+
+.search-button button:active {
+    transform: scale(0.95);
+}
+
+/* Dropdown Menu */
+#cityDropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+#cityDropdown.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #f7f7f7;
+}
+
+/* Destination Result Item */
+.destination-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.destination-result-item i {
+    flex-shrink: 0;
+}
+
+/* Location Icon */
+.location-add {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #717171;
+    pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .search-destinations {
+        flex-wrap: wrap;
+        border-radius: 24px;
+        padding: 12px;
+    }
+
+    .mobile-add-destination {
+        width: 100%;
+    }
+
+    .tool-services-add {
+        width: 100%;
+    }
+
+    .destination-section,
+    .service-section,
+    .tool-section,
+    .gender-section {
+        min-width: unset;
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-destinations {
+        flex-direction: column;
+        border-radius: 20px;
+        padding: 8px;
+    }
+
+    .mobile-add-destination,
+    .tool-services-add {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .destination-section,
+    .service-section,
+    .tool-section,
+    .gender-section {
+        width: 100%;
+    }
+
+    .search-button {
+        width: 100%;
+    }
+
+    .search-button button {
+        width: 100%;
+        border-radius: 24px;
+        height: 48px;
+    }
+
+    #cityDropdown {
+        top: 100%;
+        left: 0;
+        right: 0;
+    }
+}
+
+/* Animation for dropdown */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#cityDropdown.show {
+    animation: slideDown 0.2s ease-out;
+}
+
+/* Scrollbar styling for dropdown */
+#cityDropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+#cityDropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#cityDropdown::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+#cityDropdown::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Icon colors based on location type */
+.location-type-country {
+    color: #FF5A5F;
+}
+
+.location-type-state {
+    color: #00A699;
+}
+
+.location-type-city {
+    color: #FC642D;
+}
+
+.location-type-zipcode {
+    color: #484848;
+}
+
+/* Focus states */
+.search-destination:focus,
+.choose-service:focus,
+.choose-tool:focus,
+.choose-gender:focus {
+    box-shadow: 0 0 0 2px #FF385C;
+}

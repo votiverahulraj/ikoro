@@ -290,7 +290,7 @@
                                 <div class="location-tab-add">
                                     @if ($host_profile->gigs->isNotEmpty())
                                         @foreach ($host_profile->gigs->unique('city_id') as $gig)
-                                            <h1>{{ $gig->city->name }}</h1>
+                                            <h1>{{ $gig->city }}</h1>
                                         @endforeach
                                     @else
                                         <h1>N/A</h1>

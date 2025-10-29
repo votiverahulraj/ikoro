@@ -2,6 +2,7 @@
     @push('styles')
         <link rel="stylesheet" href="{{ asset('frontend/assets/css/select-a-task.css') }}" />
         <link rel="stylesheet" href="{{ asset('frontend/assets/css/style.css') }}" />
+        <link rel="stylesheet" href="{{ asset('frontend/assets/css/airbnb-search.css') }}" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/fontawesome.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
         <link rel="stylesheet" href="{{ asset('frontend/assets/owlcarousel/owl.carousel.min.css') }}" />
@@ -14,9 +15,12 @@
             rel="stylesheet" />
         <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/assets/owl.carousel.min.css"
             rel="stylesheet" />
+        <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+        <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+        <script src="{{ asset('frontend/assets/js/destination-search.js') }}" defer></script>
 
         <style>
             .select-host-click {
@@ -61,6 +65,50 @@
 
             .envelope-icon {
                 font-size: 18px;
+            }
+
+            /* Destination Map Styles */
+            .destination-map-container {
+                background: #f7f7f7;
+                padding: 30px 0;
+            }
+
+            .map-legend {
+                display: flex;
+                justify-content: center;
+                margin-top: 15px;
+                gap: 30px;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #222;
+                font-size: 14px;
+            }
+
+            .legend-icon {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            .mapboxgl-popup-content {
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            .mapboxgl-popup-content h4 {
+                margin: 0 0 5px 0;
+                font-size: 16px;
+                font-weight: bold;
+            }
+
+            .mapboxgl-popup-content p {
+                margin: 0;
+                font-size: 14px;
             }
         </style>
     @endpush
@@ -337,6 +385,24 @@
 <p class="alert {{ Session::get('alert-class', 'alert-info') }}">{{ Session::get('message') }}</p>
 @endif -->
 
+            <!-- Destination Map Display -->
+            <div id="destination-map-section" class="destination-map-container" style="margin-top: 30px; margin-bottom: 30px;">
+                <div class="container">
+                    <h3 class="text-center mb-3" style="color: #222; font-weight: 700;">Popular Destinations</h3>
+                    <div id="destination-map" style="height: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                    <div id="map-legend" class="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-icon" style="background-color: #FF5A5F;"></span>
+                            <span class="legend-text" style="color: #222;">Most Searched</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon" style="background-color: #00A699;"></span>
+                            <span class="legend-text" style="color: #222;">Popular</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="container">
                 <!--    <div class="content flex-grow-1 mb-5 mt-3 meet-top-section-owl">
                     <div class="container-fluid bg-3 text-center">
@@ -386,6 +452,84 @@
 
         <script>
             let host = @json($where ?? []);
+        </script>
+
+        <!-- Mapbox Destination Map Initialization -->
+        <script>
+            const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
+            const topDestinations = @json($topDestinations ?? []);
+
+            // Initialize map on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof mapboxgl !== 'undefined' && document.getElementById('destination-map')) {
+                    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+                    const map = new mapboxgl.Map({
+                        container: 'destination-map',
+                        style: 'mapbox://styles/mapbox/streets-v12', // Light, readable map
+                        center: [8.6753, 9.0820], // Nigeria center (longitude, latitude)
+                        zoom: 5.5,
+                        projection: 'globe'
+                    });
+
+                    map.on('load', function() {
+                        // Add markers for popular destinations
+                        topDestinations.forEach((dest, index) => {
+                            // Determine marker color based on popularity
+                            const color = index === 0 ? '#FF5A5F' : '#00A699';
+
+                            // // Get coordinates (you may need to add geocoding)
+                            // let coords = [0, 0]; // Default
+                            // Default coordinates for Nigeria (center)
+                            let coords = [9.789039272567765, 8.097571834543599];
+
+                            // Try to get coordinates from gigs if available
+                            if (dest.latitude && dest.longitude) {
+                                coords = [parseFloat(dest.longitude), parseFloat(dest.latitude)];
+                            }
+
+                            // Create marker
+                            const el = document.createElement('div');
+                            el.className = 'destination-marker';
+                            el.style.backgroundColor = color;
+                            el.style.width = '30px';
+                            el.style.height = '30px';
+                            el.style.borderRadius = '50%';
+                            el.style.border = '3px solid white';
+                            el.style.cursor = 'pointer';
+                            el.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+
+                            // Create popup
+                            const popup = new mapboxgl.Popup({ offset: 25 })
+                                .setHTML(`
+                                    <h4>${dest.full_location_name}</h4>
+                                    <p><strong>Searches:</strong> ${dest.search_count}</p>
+                                    <p><small>Last searched: ${new Date(dest.last_searched_at).toLocaleDateString()}</small></p>
+                                `);
+
+                            // Add marker to map
+                            new mapboxgl.Marker(el)
+                                .setLngLat(coords)
+                                .setPopup(popup)
+                                .addTo(map);
+                        });
+
+                        // Fit map to show all markers if we have destinations
+                        if (topDestinations.length > 0 && topDestinations[0].latitude) {
+                            const bounds = new mapboxgl.LngLatBounds();
+                            topDestinations.forEach(dest => {
+                                if (dest.latitude && dest.longitude) {
+                                    bounds.extend([parseFloat(dest.longitude), parseFloat(dest.latitude)]);
+                                }
+                            });
+                            map.fitBounds(bounds, { padding: 50, maxZoom: 10 });
+                        }
+                    });
+
+                    // Add navigation controls
+                    map.addControl(new mapboxgl.NavigationControl());
+                }
+            });
         </script>
 
         <script>

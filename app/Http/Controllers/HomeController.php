@@ -13,6 +13,7 @@ use App\Models\EquipmentPrice;
 use App\Models\Gig;
 use App\Models\GigFeature;
 use App\Models\Host;
+use App\Models\DestinationSearchLog;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -69,28 +70,122 @@ class HomeController extends Controller
 
         $data['tasks'] = Task::all();
 
+        // Get top searched destinations for map display
+        $data['topDestinations'] = DestinationSearchLog::getTopDestinations(10);
+
         return view('home', $data);
     }
 
     public function searchLocations(Request $request)
     {
         $query = $request->input('query');
-        // $cities = City::where('name', 'LIKE', "%{$query}%")->limit(10)->get();
-        // return response()->json($cities);
+        $results = collect();
 
-        $cities = City::select('id', 'name')->where('name', 'LIKE', "%{$query}%")->get()->map(function ($item) {
-            return ['id' => $item->id, 'name' => $item->name, 'type' => 'City'];
-        });
+        // Search Zipcodes with full hierarchy
+        $zipcodes = Zipcode::with(['city.state.country'])
+            ->where('code', 'LIKE', "%{$query}%")
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                $city = $item->city;
+                $state = $city ? $city->state : null;
+                $country = $state ? $state->country : null;
 
-        $states = State::select('id', 'name')->where('name', 'LIKE', "%{$query}%")->get()->map(function ($item) {
-            return ['id' => $item->id, 'name' => $item->name, 'type' => 'State'];
-        });
+                $hierarchy = [];
+                if ($country) $hierarchy[] = $country->name;
+                if ($state) $hierarchy[] = $state->name;
+                if ($city) $hierarchy[] = $city->name;
+                $hierarchy[] = $item->code;
 
-        $countries = Country::select('id', 'name')->where('name', 'LIKE', "%{$query}%")->get()->map(function ($item) {
-            return ['id' => $item->id, 'name' => $item->name, 'type' => 'Country'];
-        });
+                return [
+                    'id' => $item->id,
+                    'name' => implode(', ', $hierarchy),
+                    'type' => 'Zipcode',
+                    'hierarchy' => [
+                        'country' => $country ? $country->name : null,
+                        'state' => $state ? $state->name : null,
+                        'city' => $city ? $city->name : null,
+                        'zipcode' => $item->code,
+                    ],
+                    'icon' => 'fa-map-pin'
+                ];
+            });
 
-        $results = $cities->merge($states)->merge($countries)->take(10);
+        // Search Cities with full hierarchy
+        $cities = City::with(['state.country'])
+            ->where('name', 'LIKE', "%{$query}%")
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                $state = $item->state;
+                $country = $state ? $state->country : null;
+
+                $hierarchy = [];
+                if ($country) $hierarchy[] = $country->name;
+                if ($state) $hierarchy[] = $state->name;
+                $hierarchy[] = $item->name;
+
+                return [
+                    'id' => $item->id,
+                    'name' => implode(', ', $hierarchy),
+                    'type' => 'City',
+                    'hierarchy' => [
+                        'country' => $country ? $country->name : null,
+                        'state' => $state ? $state->name : null,
+                        'city' => $item->name,
+                        'zipcode' => null,
+                    ],
+                    'icon' => 'fa-city'
+                ];
+            });
+
+        // Search States with hierarchy
+        $states = State::with('country')
+            ->where('name', 'LIKE', "%{$query}%")
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                $country = $item->country;
+
+                $hierarchy = [];
+                if ($country) $hierarchy[] = $country->name;
+                $hierarchy[] = $item->name;
+
+                return [
+                    'id' => $item->id,
+                    'name' => implode(', ', $hierarchy),
+                    'type' => 'State',
+                    'hierarchy' => [
+                        'country' => $country ? $country->name : null,
+                        'state' => $item->name,
+                        'city' => null,
+                        'zipcode' => null,
+                    ],
+                    'icon' => 'fa-map-marker-alt'
+                ];
+            });
+
+        // Search Countries
+        $countries = Country::where('name', 'LIKE', "%{$query}%")
+            ->take(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'type' => 'Country',
+                    'hierarchy' => [
+                        'country' => $item->name,
+                        'state' => null,
+                        'city' => null,
+                        'zipcode' => null,
+                    ],
+                    'icon' => 'fa-globe'
+                ];
+            });
+
+        // Merge all results, prioritize more specific locations
+        $results = $zipcodes->merge($cities)->merge($states)->merge($countries)->take(10);
 
         return response()->json($results);
     }
@@ -129,7 +224,7 @@ class HomeController extends Controller
     }
 
     public function filterHost(Request $request)
-    {   
+    {
         $data = $this->prepareData($request);
         $data['tasks'] = Task::all();
         $where = [];
@@ -145,14 +240,47 @@ class HomeController extends Controller
         if ($request->filled('location_id') && $request->filled('location_type')) {
             $locationId = $request->input('location_id');
             $locationType = $request->input('location_type');
+            $locationName = $request->input('location_name', '');
 
+            // Track search frequency
+            $relatedIds = [];
             if ($locationType === 'City') {
                 $where['city_id'] = $locationId;
+                $city = City::with(['state.country'])->find($locationId);
+                if ($city) {
+                    $relatedIds = [
+                        'city_id' => $city->id,
+                        'state_id' => $city->state_id,
+                        'country_id' => $city->state->country_id ?? null,
+                    ];
+                }
             } elseif ($locationType === 'State') {
                 $where['state_id'] = $locationId;
+                $state = State::with('country')->find($locationId);
+                if ($state) {
+                    $relatedIds = [
+                        'state_id' => $state->id,
+                        'country_id' => $state->country_id,
+                    ];
+                }
             } elseif ($locationType === 'Country') {
                 $where['country_id'] = $locationId;
+                $relatedIds = ['country_id' => $locationId];
+            } elseif ($locationType === 'Zipcode') {
+                $where['zip_id'] = $locationId;
+                $zipcode = Zipcode::with(['city.state.country'])->find($locationId);
+                if ($zipcode) {
+                    $relatedIds = [
+                        'zip_id' => $zipcode->id,
+                        'city_id' => $zipcode->city_id,
+                        'state_id' => $zipcode->city->state_id ?? null,
+                        'country_id' => $zipcode->city->state->country_id ?? null,
+                    ];
+                }
             }
+
+            // Log the search
+            DestinationSearchLog::logSearch($locationType, $locationId, $locationName, $relatedIds);
         }
 
         if ($request->filled('task_id')) {

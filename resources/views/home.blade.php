@@ -34,6 +34,7 @@
                                         </p>
                                         @php
                                             $firstValidGig = $host->gigs->first();
+                                            //echo "<pre>";echo $firstValidGig;die;
                                             // $uniqueCities = $host->gigs
                                             //     ->unique('city_id')
                                             //     ->pluck('city.name')
@@ -43,8 +44,10 @@
 
                                         <p> <i class="fa fa-map-marker" aria-hidden="true"></i>
                                             @if ($firstValidGig)
-                                                {{ $firstValidGig->city->name ?? 'N/A' }},
-                                                {{ $firstValidGig->city->state->name ?? 'N/A' }}
+                                                <!-- {{ $firstValidGig->city->name ?? 'N/A' }}, -->
+                                                <!-- {{ $firstValidGig->city->state->name ?? 'N/A' }} -->
+                                                {{ $firstValidGig->city ?? 'N/A' }},
+                                                {{ $firstValidGig->state ?? 'N/A' }}
                                             @else
                                                 N/A
                                             @endif
