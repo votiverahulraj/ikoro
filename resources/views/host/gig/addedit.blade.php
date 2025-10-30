@@ -544,8 +544,8 @@
                             <div class="form-group col-md-12">
                                 <x-input-label for="address" :value="__('address')" />
 
+                                <!-- <input class="input mb12" autocomplete="address-line1" name="address-line1" value="{{ $gig['address'] ?? old('address-line1') }}" required=""> -->
                                 <input id="address-line1" class="input mb12" autocomplete="address-line1" name="address-line1" value="{{ $gig['address'] ?? old('address-line1') }}" required="">
-
                                 <input type="hidden" name="latitude" id="latitude" value="{{ $gig['latitude'] ?? old('latitude') }}">
                                 <input type="hidden" name="longitude" id="longitude" value="{{ $gig['longitude'] ?? old('longitude') }}">
 
@@ -560,15 +560,15 @@
 
                                 <x-input-label for="city" :value="__('City')" />
 
-                                <input class="input mb12" autocomplete="address-level2" name="address-level2" value="{{ $gig['city'] ?? old('address-level2') }}" required="">
-
+                                <!-- <input class="input mb12" autocomplete="address-level2" name="address-level2" value="{{ $gig['city'] ?? old('address-level2') }}" required=""> -->
+                                <input id="address-level2" class="input mb12" autocomplete="address-level2" name="address-level2" value="{{ $gig['city'] ?? old('address-level2') }}" required="">
                             </div>
 
                             <div class="form-group col-md-3">
 
                                 <x-input-label for="state" :value="__('State')" />
 
-                                <input class="input mb12" autocomplete="address-level1" name="address-level1" value="{{ $gig['state'] ?? old('address-level1') }}" required="">
+                                <input id="address-level1" class="input mb12" autocomplete="address-level1" name="address-level1" value="{{ $gig['state'] ?? old('address-level1') }}" required="">
 
                             </div>
 
@@ -576,7 +576,7 @@
 
                                 <x-input-label for="country" :value="__('Country')" />
 
-                                <input class="input" autocomplete="country-name" name="country" value="{{ $gig['country'] ?? old('country') }}" required="">
+                                <input id="country" class="input" autocomplete="country-name" name="country" value="{{ $gig['country'] ?? old('country') }}" required="">
 
                             </div>
 
@@ -592,7 +592,7 @@
 
 
 
-                        <div class="form-row">
+                        <div class="form-row" style="display: none;">
 
                             <div class="form-group col-md-3">
 
@@ -960,7 +960,23 @@ window.addEventListener('load', async () => {
 
   // init autofill — capture returned object
   try {
-    autofillCollection = mapboxsearch.autofill({});
+    autofillCollection = mapboxsearch.autofill({
+        options: {
+            language: 'en',
+            // country: 'ng', // Nigeria (lowercase)
+            types: [
+                'country',
+                'region',
+                'postcode',
+                'district',
+                'place',              // Cities
+                'locality',
+                'neighborhood',
+                'address',
+                'poi'                 // Points of interest
+            ],
+        }
+    });
     console.log('[map] autofillCollection created:', autofillCollection);
   } catch (err) {
     console.error('[map] error creating autofillCollection:', err);
@@ -1036,37 +1052,38 @@ window.addEventListener('load', async () => {
       } else {
         console.warn('[map] feature.geometry.coordinates missing; feature:', feature);
       }
-
-      // Populate the address field with the full address
-      const addressInput = document.getElementById('address-line1');
-      if (addressInput) {
-        // Build full address from available fields
-        const cityInput = document.getElementById('address-level2');
-        const stateInput = document.getElementById('address-level1');
-        const countryInput = document.getElementById('country');
-        const postcodeInput = document.getElementById('postcode');
-
-        // Wait a bit for Mapbox to populate other fields, then construct address
-        setTimeout(() => {
-          const addressParts = [];
-          if (cityInput && cityInput.value) addressParts.push(cityInput.value);
-          if (stateInput && stateInput.value) addressParts.push(stateInput.value);
-          if (postcodeInput && postcodeInput.value) addressParts.push(postcodeInput.value);
-          if (countryInput && countryInput.value) addressParts.push(countryInput.value);
-
-          const constructedAddress = addressParts.join(', ');
-
-          // If address input is empty, fill it with constructed address
-          if (!addressInput.value && constructedAddress) {
-            addressInput.value = constructedAddress;
-            console.log('[map] address field populated with constructed address:', constructedAddress);
-          } else {
-            console.log('[map] address field already has value:', addressInput.value);
-          }
-        }, 500);
-      }
     });
   }
+
+
+    //   // Populate the address field with the full address
+    //   const addressInput = document.getElementById('address-line1');
+    //   if (addressInput) {
+    //     // Build full address from available fields
+    //     const cityInput = document.getElementById('address-level2');
+    //     const stateInput = document.getElementById('address-level1');
+    //     const countryInput = document.getElementById('country');
+    //     const postcodeInput = document.getElementById('postcode');
+
+    //     // Wait a bit for Mapbox to populate other fields, then construct address
+    //     setTimeout(() => {
+    //       const addressParts = [];
+    //       if (cityInput && cityInput.value) addressParts.push(cityInput.value);
+    //       if (stateInput && stateInput.value) addressParts.push(stateInput.value);
+    //       if (postcodeInput && postcodeInput.value) addressParts.push(postcodeInput.value);
+    //       if (countryInput && countryInput.value) addressParts.push(countryInput.value);
+
+    //       const constructedAddress = addressParts.join(', ');
+
+    //       // If address input is empty, fill it with constructed address
+    //       if (!addressInput.value && constructedAddress) {
+    //         addressInput.value = constructedAddress;
+    //         console.log('[map] address field populated with constructed address:', constructedAddress);
+    //       } else {
+    //         console.log('[map] address field already has value:', addressInput.value);
+    //       }
+    //     }, 500);
+    //   }
 
   // Extra: listen for "select" on the input if retrieve doesn't fire in your environment
   const addrInput = document.querySelector('input[name="address-line1"], input[name="address"]');

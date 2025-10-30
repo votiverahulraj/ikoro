@@ -386,10 +386,16 @@
 @endif -->
 
             <!-- Destination Map Display -->
-            <div id="destination-map-section" class="destination-map-container" style="margin-top: 30px; margin-bottom: 30px;">
+            <!-- <div id="destination-map-section" class="destination-map-container" style="margin-top: 30px; margin-bottom: 30px;">
                 <div class="container">
                     <h3 class="text-center mb-3" style="color: #222; font-weight: 700;">Popular Destinations</h3>
-                    <div id="destination-map" style="height: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                    <div id="destination-map" style="height: 400px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div> -->
+
+            <div id="destination-map-section" class="destination-map-container" style="margin-top: 40px; margin-bottom: 40px;">
+                <div class="container">
+                    <h3 class="text-center mb-4" style="color: #222; font-weight: 700; font-size: 28px;">Destination Map Display</h3>
+                    <div id="destination-map" style="height: 450px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+
                     <!-- <div id="map-legend" class="map-legend">
                         <div class="legend-item">
                             <span class="legend-icon" style="background-color: #FF5A5F;"></span>
@@ -453,7 +459,19 @@
         <script>
             let host = @json($where ?? []);
         </script>
+        <!-- <script>
+            const script = document.getElementById('search-js');
+            script.onload = function() {
+                mapboxsearch.autofill({
+                    accessToken: 'k.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw'
+                });
+            };
+        </script> -->
 
+        <script
+            defer
+            src="https://api.mapbox.com/search-js/v1.2.0/web.js">
+        </script>
         <!-- Mapbox Search Autofill for Destination Input -->
         <script>
             const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
@@ -479,7 +497,36 @@
                     const searchAutofill = mapboxsearch.autofill({
                         options: {
                             language: 'en',
-                            country: 'ng', // Nigeria (lowercase)
+                            // country: 'ng', // Nigeria (lowercase)
+                            types: [
+                                'country',
+                                'region',
+                                'postcode',
+                                'district',
+                                'place',              // Cities
+                                'locality',
+                                'neighborhood',
+                                'address',
+                                'poi'                 // Points of interest
+                            ],
+                            render: (feature) => {
+                                const props = feature.properties || {};
+                                const country = props.country || '';
+                                const region = props.region || '';
+                                const place = props.place || '';
+                                const postcode = props.postcode || '';
+
+                                // Airbnb-style display order
+                                const displayText = [country, region, place, postcode].filter(Boolean).join(', ');
+
+                                // Highlight main name (like Airbnb bolds the top name)
+                                return `
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span style="font-weight:600; color:#222;">${place || region || country}</span>
+                                        <span style="color:#666; font-size:13px;">${displayText}</span>
+                                    </div>
+                                `;
+                            }
                         }
                     });
 
@@ -532,7 +579,9 @@
                             document.getElementById('destination_postcode').value = postcode;
 
                             // Format display value
-                            const fullLocation = [city, state, country].filter(Boolean).join(', ');
+                            // const fullLocation = [city, state, country].filter(Boolean).join(', ');
+                            const fullLocation = [country, state, city, postcode].filter(Boolean).join(', ');
+
                             if (fullLocation) {
                                 searchInput.value = fullLocation;
                             }
