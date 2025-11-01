@@ -231,6 +231,12 @@ class HomeController extends Controller
 
         // Start building the gig query
         $gigs = Gig::query();
+        // print_r($request->all());
+        // dd($request->all());
+        // die;
+        // print_r("giigs");
+        // print_r(value: $gigs);
+        // dd($request->input('location_name', ''));
 
         // Geographic filtering using latitude/longitude from Mapbox
         if ($request->filled('destination_latitude') && $request->filled('destination_longitude')) {
@@ -249,9 +255,11 @@ class HomeController extends Controller
                         sin(radians(?)) * sin(radians(latitude))
                     )) <= ?
                 ", [$searchLat, $searchLng, $searchLat, $radiusKm]);
-
+            // print_r($gigs);
             // Log search with location data (check for duplicate by lat/lng)
-            $locationName = $request->input('location_name', '');
+            $locationName = $request->input('location_name_address-search', '');
+            // print_r($locationName);
+            // dd($locationName);
             if ($locationName) {
                 // Check if this location was searched before (within 0.01 degree tolerance ~1km)
                 $existingLog = DestinationSearchLog::where('location_type', 'Mapbox')
@@ -281,6 +289,7 @@ class HomeController extends Controller
             $where['task_id'] = $request->input('task_id');
         }
 
+
         // Apply basic where conditions
         if (!empty($where)) {
             $gigs->where($where);
@@ -302,8 +311,36 @@ class HomeController extends Controller
                 $query->where($today_is_open, 1);
             });
         }
-
+        // print_r($gigs);
         $data['gigs'] = $gigs->paginate(6)->appends($request->all());
+
+        // Get filtered host locations for map display
+        // Extract unique locations from filtered gigs with valid coordinates
+        $filteredLocations = $gigs->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get()
+            ->map(function($gig) {
+                return [
+                    'id' => $gig->id,
+                    'host_name' => $gig->host->name ?? 'Unknown Host',
+                    'full_location_name' => implode(', ', array_filter([
+                        $gig->country,
+                        $gig->state,
+                        $gig->city,
+                        $gig->postcode
+                    ])),
+                    'latitude' => $gig->latitude,
+                    'longitude' => $gig->longitude,
+                    'search_count' => 1,  // Set to 1 for filtered results
+                    'last_searched_at' => now()
+                ];
+            })
+            ->unique('full_location_name')
+            ->values();
+
+        $data['topDestinations'] = $filteredLocations;
+
+        // print_r($data['gigs']);
         return view('pages.gig-filter-host', $data);
     }
 
@@ -333,11 +370,11 @@ class HomeController extends Controller
             $query->with(['features' => function ($q) {
                 $q->latest()->take(3);
             }]);
-        }])->findOrFail($host_id);  
+        }])->findOrFail($host_id);
         // dd($data['host_profile'] );
         return view('pages.host-profile', $data);
     }
-    
+
     public function demoBookingDetailByGigId($gig_id)
     {
         $clientId = (Auth::check() && Auth::user()->role === 'user') ? Auth::id() : ''; // cleaner way
@@ -366,7 +403,7 @@ class HomeController extends Controller
     }
 
     public function bookingDetailByGigId(Request $request, $gig_id)
-    {       
+    {
         $clientId = (Auth::check() && Auth::user()->role === 'user') ? Auth::id() : ''; // cleaner way
         $data = [
             'loggedIn' => $clientId ?? '',
@@ -380,12 +417,12 @@ class HomeController extends Controller
         $data['selectedFeatureIds'] = (array) $request->query('features');
         // $data['selectedGig'] = GigFeature::where('gig_id', $gig_id)
         //     ->pluck('gig_id')
-        //     ->toArray();        
-        
-        // $equipmentId = $gig->equipmentPrice->equipment_id ?? null;  
+        //     ->toArray();
+
+        // $equipmentId = $gig->equipmentPrice->equipment_id ?? null;
         // $data['selectedEquipmentPrices'] = $equipmentId
         //     ? EquipmentPrice::where('equipment_id', $equipmentId)->get()
-        //     : collect(); 
+        //     : collect();
         // dd($data['selectedFeatureIds']);
         return view('pages.booking-details', $data);
     }

@@ -16,17 +16,14 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/assets/owl.carousel.min.css"
             rel="stylesheet" />
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
-        <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/style.css"> -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/style.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
         <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-        <!-- <script src="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/web.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/@mapbox/search-js-web@1.0.0-beta.21/dist/web.js"></script>
         {{-- Old search disabled in favor of Mapbox: <script src="{{ asset('frontend/assets/js/destination-search.js') }}" defer></script> --}}
 
-        <!-- <link href="https://api.mapbox.com/mapbox-assembly/v1.3.0/assembly.min.css" rel="stylesheet">
-
-        <script id="search-js" defer="" src="https://api.mapbox.com/search-js/v1.5.0/web.js"></script> -->
         <style>
             .select-host-click {
                 cursor: pointer;
@@ -476,8 +473,7 @@
             src="https://api.mapbox.com/search-js/v1.2.0/web.js">
         </script>
         <!-- Mapbox Search Autofill for Destination Input -->
-         <!-- this is the working the search funtionality -->
-        <!-- <script>
+        <script>
             const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
 
             // Initialize Mapbox Address Autofill for search input
@@ -598,255 +594,12 @@
                     console.error('[Search] Error initializing Mapbox autofill:', error);
                 }
             });
-        </script> -->
-
-        <!-- <script>
-            const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
-
-            // Initialize Mapbox Address Autofill for search input
-            window.addEventListener('load', () => {
-                const searchInput = document.getElementById('citySearchByInput');
-                console.log(searchInput);
-                if (!searchInput) {
-                    console.warn('[Search] Input element not found');
-                    return;
-                }
-
-                if (typeof mapboxsearch === 'undefined') {
-                    console.warn('[Search] Mapbox Search library not loaded');
-                    return;
-                }
-
-                try {
-                    // Initialize with proper configuration
-                    mapboxsearch.config.accessToken = MAPBOX_TOKEN;
-                    // console.log(mapboxsearch.config.accessToken);
-                    const searchAutofill = mapboxsearch.autofill({
-                        options: {
-                            language: 'en',
-                            // country: 'ng', // Nigeria (lowercase)
-                            types: [
-                                'country',
-                                'region',
-                                'postcode',
-                                'district',
-                                'place',              // Cities
-                                'locality',
-                                'neighborhood',
-                                'address',
-                                'poi'                 // Points of interest
-                            ],
-                            render: (feature) => {
-                                const props = feature.properties || {};
-                                const country = props.country || '';
-                                const region = props.region || '';
-                                const place = props.place || '';
-                                const postcode = props.postcode || '';
-
-                                // Airbnb-style display order
-                                const displayText = [country, region, place, postcode].filter(Boolean).join(', ');
-
-                                // Highlight main name (like Airbnb bolds the top name)
-                                return `
-                                    <div style="display:flex; align-items:center; gap:8px;">
-                                        <span style="font-weight:600; color:#222;">${place || region || country}</span>
-                                        <span style="color:#666; font-size:13px;">${displayText}</span>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
-
-                    console.log('[Search] Mapbox autofill initialized');
-                    // console.log(searchAutofill);
-                    // Listen for address selection
-                    searchInput.addEventListener('retrieve', (e) => {
-                        console.log('[Search] Address selected:', e);
-
-                        if (!e.detail || !e.detail.features || !e.detail.features.length) {
-                            console.warn('[Search] No features in event');
-                            return;
-                        }
-
-                        const feature = e.detail.features[0];
-                        console.log('[Search] Feature:', feature);
-
-                        if (feature && feature.geometry && feature.geometry.coordinates) {
-                            // Get coordinates
-                            const [lng, lat] = feature.geometry.coordinates;
-                            document.getElementById('destination_latitude').value = lat;
-                            document.getElementById('destination_longitude').value = lng;
-
-                            // Extract address components
-                            let city = '', state = '', country = '', postcode = '';
-
-                            if (feature.properties) {
-                                // Try to get from properties
-                                if (feature.properties.context) {
-                                    Object.values(feature.properties.context).forEach(item => {
-                                        if (item.id) {
-                                            if (item.id.startsWith('place')) city = item.text || item.name;
-                                            if (item.id.startsWith('region')) state = item.text || item.name;
-                                            if (item.id.startsWith('country')) country = item.text || item.name;
-                                            if (item.id.startsWith('postcode')) postcode = item.text || item.name;
-                                        }
-                                    });
-                                }
-
-                                // Fallback to direct properties
-                                city = city || feature.properties.place || '';
-                                state = state || feature.properties.region || '';
-                                country = country || feature.properties.country || '';
-                                postcode = postcode || feature.properties.postcode || '';
-                            }
-
-                            document.getElementById('destination_city').value = city;
-                            document.getElementById('destination_state').value = state;
-                            document.getElementById('destination_country').value = country;
-                            document.getElementById('destination_postcode').value = postcode;
-
-                            // Format display value
-                            const fullLocation = [country, state, city, postcode].filter(Boolean).join(', ');
-
-                            if (fullLocation) {
-                                searchInput.value = fullLocation;
-                            }
-
-                            console.log('[Search] Location captured:', {
-                                lat, lng, city, state, country, postcode
-                            });
-                        }
-                    });
-                } catch (error) {
-                    console.error('[Search] Error initializing Mapbox autofill:', error);
-                }
-            });
-        </script> -->
-
-    <script>
-        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
-
-        let autofillCollection;
-        let minimap;
-
-        function showMap() {
-        const el = document.getElementById("minimap-container");
-        if (el) el.classList.remove("none");
-        }
-
-        // start up
-        window.addEventListener('load', async () => {
-            console.log('[map] window loaded');
-
-            // safety: make sure mapboxsearch is available
-            if (typeof mapboxsearch === 'undefined') {
-                console.error('[map] mapboxsearch is undefined — make sure Mapbox Address Autofill script is loaded BEFORE this script');
-                return;
-            }
-
-            mapboxsearch.config.accessToken = MAPBOX_ACCESS_TOKEN;
-            console.log('[map] accessToken set');
-
-            // init autofill — capture returned object
-            try {
-                autofillCollection = mapboxsearch.autofill({
-                    options: {
-                        language: 'en',
-                        // country: ['NG'],//'ng', // Nigeria (lowercase)
-                        types: [
-                            'country',
-                            'region',
-                            'postcode',
-                            'district',
-                            'place',              // Cities
-                            'locality',
-                            'neighborhood',
-                            'address',
-                            'poi'                 // Points of interest
-                        ],
-                    }
-                });
-                console.log('[map] autofillCollection created:', autofillCollection);
-            } catch (err) {
-                console.error('[map] error creating autofillCollection:', err);
-                return;
-            }
-
-            // ------------- DEBUGGING: make sure event is being attached ----------------
-            if (!autofillCollection || typeof autofillCollection.addEventListener !== 'function') {
-                console.error('[map] autofillCollection is invalid or has no addEventListener');
-            } else {
-                console.log('[map] attaching "retrieve" listener to autofillCollection');
-                autofillCollection.addEventListener('retrieve', async (e) => {
-                console.log('[map] retrieve event fired, event object:', e);
-
-                // defensive: ensure e.detail and features exist
-                const features = e && e.detail && e.detail.features;
-                if (!features || !Array.isArray(features) || features.length === 0) {
-                    console.warn('[map] retrieve event had no features:', e);
-                    return;
-                }
-
-                const feature = features[0];
-                console.log('[map] feature:', feature);
-
-                // if minimap supports .feature property, set it. otherwise try to set center/marker manually.
-                try {
-                    minimap.feature = feature;
-                    console.log('[minimap] minimap.feature set');
-                } catch (err) {
-                    console.warn('[minimap] could not set minimap.feature, error:', err);
-                }
-
-                // coordinates: GeoJSON order is [lng, lat]
-                if (feature.geometry && Array.isArray(feature.geometry.coordinates)) {
-                    // console.log('[map] feature: ', feature);
-                    console.log(feature.properties.address_line1, feature.properties.country, feature.properties.postcode, feature.properties.region, feature.properties.place);
-                    const [lng, lat] = feature.geometry.coordinates;
-                    // console.log('[map] coords extracted from feature:', { lat, lng });
-
-                    const latInput = document.getElementById('destination_latitude');
-                    const lngInput = document.getElementById('destination_longitude');
-
-                    const cityInput = document.getElementById('destination_city');
-                    const stateInput = document.getElementById('destination_state');
-                    const countryInput = document.getElementById('destination_country');
-                    const postcodeInput = document.getElementById('destination_postcode');
-
-                    cityInput.value = feature.properties.place || '';
-                    stateInput.value = feature.properties.region || '';
-                    countryInput.value = feature.properties.country || '';
-                    postcodeInput.value = feature.properties.postcode || '';
-
-                    // document.getElementById('destination_city').value = city;
-                    // document.getElementById('destination_state').value = state;
-                    // document.getElementById('destination_country').value = country;
-                    // document.getElementById('destination_postcode').value = postcode;
-                    // document.getElementById('destination_latitude').value = lat;
-                    // document.getElementById('destination_longitude').value = lng;
-
-                    if (latInput && lngInput) {
-                    latInput.value = lat;
-                    lngInput.value = lng;
-                    console.log('[map] hidden inputs updated:', latInput.value, lngInput.value);
-                    } else {
-                    console.warn('[map] latitude/longitude inputs not found. Make sure <input id="latitude"> and <input id="longitude"> exist in the DOM');
-                    }
-                } else {
-                    console.warn('[map] feature.geometry.coordinates missing; feature:', feature);
-                }
-                });
-            }
-
-        });
-    </script>
-
+        </script>
 
         <!-- Mapbox Destination Map Initialization -->
         <script>
             const topDestinations = @json($topDestinations ?? []);
-            console.log('Top Destinations:', topDestinations);
-            const MAPBOX_TOKEN = 'pk.eyJ1IjoiaWtvcm9ocSIsImEiOiJjbWdkc2tkcGYxbWJoMmpxdzV5dm10cjhhIn0.TpAnavdsPjHbTMD1N1OsEw';
+
             // Initialize map on page load
             document.addEventListener('DOMContentLoaded', function() {
                 if (typeof mapboxgl !== 'undefined' && document.getElementById('destination-map')) {
@@ -902,116 +655,17 @@
                                 .addTo(map);
                         });
 
-                        // Fit map to all visible markers within Nigeria
-                        const nigeriaMarkers = topDestinations.filter(dest => {
-                            if (!(dest.latitude && dest.longitude)) return false;
-                            const lat = parseFloat(dest.latitude);
-                            const lng = parseFloat(dest.longitude);
-                            return (
-                                lat >= 4.2725 &&
-                                lat <= 13.8856 &&
-                                lng >= 2.6769 &&
-                                lng <= 14.6774
-                            );
-                        });
-
-                        if (nigeriaMarkers.length > 0) {
+                        // Fit map to show all markers if we have destinations
+                        if (topDestinations.length > 0 && topDestinations[0].latitude) {
                             const bounds = new mapboxgl.LngLatBounds();
-                            nigeriaMarkers.forEach(dest => {
-                                bounds.extend([parseFloat(dest.longitude), parseFloat(dest.latitude)]);
+                            topDestinations.forEach(dest => {
+                                if (dest.latitude && dest.longitude) {
+                                    bounds.extend([parseFloat(dest.longitude), parseFloat(dest.latitude)]);
+                                }
                             });
                             map.fitBounds(bounds, { padding: 50, maxZoom: 10 });
                         }
-
-                        // // Fit map to show all markers if we have destinations
-                        // if (topDestinations.length > 0 && topDestinations[0].latitude) {
-                        //     const bounds = new mapboxgl.LngLatBounds();
-                        //     topDestinations.forEach(dest => {
-                        //         if (dest.latitude && dest.longitude) {
-                        //             bounds.extend([parseFloat(dest.longitude), parseFloat(dest.latitude)]);
-                        //         }
-                        //     });
-                        //     map.fitBounds(bounds, { padding: 50, maxZoom: 10 });
-                        // }
                     });
-
-                    // map.on('load', function() {
-                    //     // Nigeria's approximate bounding box
-                    //     const nigeriaBounds = {
-                    //         north: 13.8856,   // northernmost latitude
-                    //         south: 4.2725,    // southernmost latitude
-                    //         west: 2.6769,     // westernmost longitude
-                    //         east: 14.6774     // easternmost longitude
-                    //     };
-
-                    //     // Add markers for destinations inside Nigeria
-                    //     topDestinations.forEach((dest, index) => {
-                    //         if (!(dest.latitude && dest.longitude)) return;
-
-                    //         const lat = parseFloat(dest.latitude);
-                    //         const lng = parseFloat(dest.longitude);
-
-                    //         // Check if the destination is within Nigeria
-                    //         const isInNigeria =
-                    //             lat >= nigeriaBounds.south &&
-                    //             lat <= nigeriaBounds.north &&
-                    //             lng >= nigeriaBounds.west &&
-                    //             lng <= nigeriaBounds.east;
-
-                    //         if (!isInNigeria) return; // Skip markers outside Nigeria
-
-                    //         const color = index === 0 ? '#FF5A5F' : '#00A699';
-
-                    //         const coords = [lng, lat];
-
-                    //         // Create marker element
-                    //         const el = document.createElement('div');
-                    //         el.className = 'destination-marker';
-                    //         el.style.backgroundColor = color;
-                    //         el.style.width = '30px';
-                    //         el.style.height = '30px';
-                    //         el.style.borderRadius = '50%';
-                    //         el.style.border = '3px solid white';
-                    //         el.style.cursor = 'pointer';
-                    //         el.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
-
-                    //         // Create popup
-                    //         const popup = new mapboxgl.Popup({ offset: 25 })
-                    //             .setHTML(`
-                    //                 <h4>${dest.full_location_name}</h4>
-                    //                 <p><strong>Searches:</strong> ${dest.search_count}</p>
-                    //                 <p><small>Last searched: ${new Date(dest.last_searched_at).toLocaleDateString()}</small></p>
-                    //             `);
-
-                    //         // Add marker to map
-                    //         new mapboxgl.Marker(el)
-                    //             .setLngLat(coords)
-                    //             .setPopup(popup)
-                    //             .addTo(map);
-                    //     });
-
-                    //     // Fit map to all visible markers within Nigeria
-                    //     const nigeriaMarkers = topDestinations.filter(dest => {
-                    //         if (!(dest.latitude && dest.longitude)) return false;
-                    //         const lat = parseFloat(dest.latitude);
-                    //         const lng = parseFloat(dest.longitude);
-                    //         return (
-                    //             lat >= 4.2725 &&
-                    //             lat <= 13.8856 &&
-                    //             lng >= 2.6769 &&
-                    //             lng <= 14.6774
-                    //         );
-                    //     });
-
-                    //     if (nigeriaMarkers.length > 0) {
-                    //         const bounds = new mapboxgl.LngLatBounds();
-                    //         nigeriaMarkers.forEach(dest => {
-                    //             bounds.extend([parseFloat(dest.longitude), parseFloat(dest.latitude)]);
-                    //         });
-                    //         map.fitBounds(bounds, { padding: 50, maxZoom: 10 });
-                    //     }
-                    // });
-
 
                     // Add navigation controls
                     map.addControl(new mapboxgl.NavigationControl());
