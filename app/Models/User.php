@@ -35,21 +35,14 @@ class User extends Authenticatable implements MustVerifyEmail
      */
 
     protected $fillable = [
-
         'name',
-
         'email',
-
         'password',
-
         'role',
-
         'email_verified_at', 
-
         'remember_token',
-
-        'facebook_id'
-
+        'facebook_id',
+        'currency_preference'
     ];
 
 
@@ -135,12 +128,27 @@ class User extends Authenticatable implements MustVerifyEmail
 
 
     public function tokenMessages()
-
     {
-
         return $this->hasMany(TokenMessage::class);
-
     }
+
+    /**
+     * Get the user's preferred currency
+     */
+    public function getPreferredCurrency(): string
+    {
+        return $this->currency_preference ?? 'USD';
+    }
+
+    /**
+     * Set the user's preferred currency
+     */
+    public function setPreferredCurrency(string $currency): void
+    {
+        $this->update(['currency_preference' => $currency]);
+    }
+
+}
 
 }
 

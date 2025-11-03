@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'host' => \App\Http\Middleware\HostMiddleware::class,
             'user' => \App\Http\Middleware\UserMiddleware::class,
+            'currency' => \App\Http\Middleware\SetUserCurrency::class,
         ]);
+        
+        $middleware->web(\App\Http\Middleware\SetUserCurrency::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
