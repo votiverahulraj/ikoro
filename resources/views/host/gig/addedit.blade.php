@@ -964,17 +964,8 @@ window.addEventListener('load', async () => {
         options: {
             language: 'en',
             // country: 'ng', // Nigeria (lowercase)
-            types: [
-                'country',
-                'region',
-                'postcode',
-                'district',
-                'place',              // Cities
-                'locality',
-                'neighborhood',
-                'address',
-                'poi'                 // Points of interest
-            ],
+            // Remove 'address' and 'poi' to show places (cities) instead of street addresses
+            types: 'country,region,postcode,district,place,locality'
         }
     });
     console.log('[map] autofillCollection created:', autofillCollection);

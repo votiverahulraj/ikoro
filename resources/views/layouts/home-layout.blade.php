@@ -876,16 +876,17 @@
                                 coords = [parseFloat(dest.longitude), parseFloat(dest.latitude)];
                             }
 
-                            // Create marker
+                            // Create marker with logo image instead of colored dot
                             const el = document.createElement('div');
                             el.className = 'destination-marker';
-                            el.style.backgroundColor = color;
-                            el.style.width = '30px';
-                            el.style.height = '30px';
-                            el.style.borderRadius = '50%';
-                            el.style.border = '3px solid white';
+                            el.style.width = '40px';
+                            el.style.height = '40px';
                             el.style.cursor = 'pointer';
-                            el.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+                            el.style.backgroundImage = 'url(/frontend/images/logo.png)'; // Change to your logo path
+                            el.style.backgroundSize = 'contain';
+                            el.style.backgroundRepeat = 'no-repeat';
+                            el.style.backgroundPosition = 'center';
+                            el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
 
                             // Create popup
                             const popup = new mapboxgl.Popup({ offset: 25 })

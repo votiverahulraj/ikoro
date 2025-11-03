@@ -238,6 +238,18 @@ class HomeController extends Controller
         // print_r(value: $gigs);
         // dd($request->input('location_name', ''));
 
+        // Text-based city search (for "Book Now" from offers)
+        if ($request->filled('search_city')) {
+            $searchCity = $request->input('search_city');
+            // Search in city, state, country, or address fields (partial match)
+            $gigs->where(function($query) use ($searchCity) {
+                $query->where('city', 'LIKE', "%{$searchCity}%")
+                      ->orWhere('state', 'LIKE', "%{$searchCity}%")
+                      ->orWhere('country', 'LIKE', "%{$searchCity}%")
+                      ->orWhere('address', 'LIKE', "%{$searchCity}%");
+            });
+        }
+
         // Geographic filtering using latitude/longitude from Mapbox
         if ($request->filled('destination_latitude') && $request->filled('destination_longitude')) {
             $searchLat = $request->input('destination_latitude');

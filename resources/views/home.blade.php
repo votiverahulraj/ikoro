@@ -288,7 +288,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'Lagos']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
@@ -306,7 +306,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'Abuja']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
@@ -326,7 +326,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'Accra']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'South Africa']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
@@ -366,7 +366,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'Nairobi']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
@@ -385,7 +385,7 @@
                                 </ul>
                                 <div class="offer-footer">
                                     <span class="price">From $50</span>
-                                    <a href="#" class="btn btn-warning btn-sm">Book Now</a>
+                                    <a href="{{ route('filter.host', ['search_city' => 'Lome']) }}" class="btn btn-warning btn-sm book-now-offer">Book Now</a>
                                 </div>
                             </div>
                         </div>
