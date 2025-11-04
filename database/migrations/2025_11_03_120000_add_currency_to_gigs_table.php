@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('equipments')) {
-            Schema::create('equipments', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->timestamps();
-            });
-        }
+        Schema::table('gigs', function (Blueprint $table) {
+            $table->string('currency')->default('USD')->after('price');
+        });
     }
 
     /**
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('equipments');
+        Schema::table('gigs', function (Blueprint $table) {
+            $table->dropColumn('currency');
+        });
     }
 };

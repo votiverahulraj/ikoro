@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->unsignedBigInteger('gig_id')->after('task_id')->nullable(); // Add gig_id column
-            $table->foreign('gig_id')->references('id')->on('gigs')->onDelete('cascade'); // Set foreign key
-        });
+        if (!Schema::hasColumn('bookings', 'gig_id')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->unsignedBigInteger('gig_id')->after('task_id')->nullable(); // Add gig_id column
+                $table->foreign('gig_id')->references('id')->on('gigs')->onDelete('cascade'); // Set foreign key
+            });
+        }
     }
 
     /**

@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->foreignId('equipment_id')->after('task_id')->nullable()->references('id')->on('equipment_price')
-            ->onUpdate('cascade')
-            ->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('bookings', 'equipment_id')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->foreignId('equipment_id')->after('task_id')->nullable()->references('id')->on('equipment_price')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -23,8 +25,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('equipment_price', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('bookings', 'equipment_id')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->dropForeign(['equipment_id']);
+                $table->dropColumn('equipment_id');
+            });
+        }
     }
 };

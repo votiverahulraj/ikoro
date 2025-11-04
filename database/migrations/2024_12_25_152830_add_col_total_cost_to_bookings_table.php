@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->float('total_cost', 8, 2)->nullable()->after('hours');
-        });
+        if (!Schema::hasColumn('bookings', 'total_cost')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->float('total_cost', 8, 2)->nullable()->after('hours');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->dropColumn('total_cost');
-        });
+        if (Schema::hasColumn('bookings', 'total_cost')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->dropColumn('total_cost');
+            });
+        }
     }
 };

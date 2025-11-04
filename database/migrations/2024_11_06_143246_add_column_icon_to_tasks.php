@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->string('icon', 45)->nullable();
-        });
+        if (!Schema::hasColumn('tasks', 'icon')) {
+            Schema::table('tasks', function (Blueprint $table) {
+                $table->string('icon', 45)->nullable();
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('tasks', 'icon')) {
+            Schema::table('tasks', function (Blueprint $table) {
+                $table->dropColumn('icon');
+            });
+        }
     }
 };

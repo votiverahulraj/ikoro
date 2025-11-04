@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('equipment_prices', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('equipment_id')->constrained('equipments')->onDelete('cascade');
-            $table->integer('duration_minutes');
-            $table->decimal('price', 10, 2);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('equipment_prices')) {
+            Schema::create('equipment_prices', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('equipment_id')->constrained('equipments')->onDelete('cascade');
+                $table->integer('duration_minutes');
+                $table->decimal('price', 10, 2);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('token_messages', function (Blueprint $table) {
-            $table->id();
-            $table->string('msg_text');
-            $table->foreignId('user_id')->nullable()->references('id')->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('cascade'); // Foreign key for user_id
-            $table->foreignId('token_id')->nullable()->references('id')->on('tokens')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('token_messages')) {
+            Schema::create('token_messages', function (Blueprint $table) {
+                $table->id();
+                $table->string('msg_text');
+                $table->foreignId('user_id')->nullable()->references('id')->on('users')
+                    ->onUpdate('cascade')
+                    ->onDelete('cascade'); // Foreign key for user_id
+                $table->foreignId('token_id')->nullable()->references('id')->on('tokens')
+                    ->onUpdate('cascade')
+                    ->onDelete('cascade');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

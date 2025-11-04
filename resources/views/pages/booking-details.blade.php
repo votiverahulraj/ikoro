@@ -46,24 +46,24 @@
 
 
                                         <li class="time-zone-mark price-option" data-duration="30"
-                                            data-price="{{ isset($gig->price30min) ? number_format($gig->price30min, 2) : '' }}">
+                                            data-price="{{ convertCurrency($gig->price30min, $gig->currency, $userCurrency) }}">
                                             30 Mins:
-                                            ${{ isset($gig->price30min) ? number_format($gig->price30min, 2) : '' }}
+                                            {{ formatCurrency(convertCurrency($gig->price30min, $gig->currency, $userCurrency), $userCurrency) }}
                                         </li>
                                         <li class="time-zone-mark price-option" data-duration="60"
-                                            data-price="{{ isset($gig->price60min) ? number_format($gig->price60min, 2) : '' }}">
+                                            data-price="{{ convertCurrency($gig->price60min, $gig->currency, $userCurrency) }}">
                                             60 Mins:
-                                            ${{ isset($gig->price60min) ? number_format($gig->price60min, 2) : '' }}
+                                            {{ formatCurrency(convertCurrency($gig->price60min, $gig->currency, $userCurrency), $userCurrency) }}
                                         </li>
                                         <li class="time-zone-mark price-option" data-duration="90"
-                                            data-price="{{ isset($gig->price90min) ? number_format($gig->price90min, 2) : '' }}">
+                                            data-price="{{ convertCurrency($gig->price90min, $gig->currency, $userCurrency) }}">
                                             90 Mins:
-                                            ${{ isset($gig->price90min) ? number_format($gig->price90min, 2) : '' }}
+                                            {{ formatCurrency(convertCurrency($gig->price90min, $gig->currency, $userCurrency), $userCurrency) }}
                                         </li>
                                         <li class="time-zone-mark price-option" data-duration="120"
-                                            data-price="{{ isset($gig->price120min) ? number_format($gig->price120min, 2) : '' }}">
+                                            data-price="{{ convertCurrency($gig->price120min, $gig->currency, $userCurrency) }}">
                                             120 Mins:
-                                            ${{ isset($gig->price120min) ? number_format($gig->price120min, 2) : '' }}
+                                            {{ formatCurrency(convertCurrency($gig->price120min, $gig->currency, $userCurrency), $userCurrency) }}
                                         </li>
                                     </ul>
                                 </div>
@@ -194,6 +194,25 @@
                                         <p>(3)</p>
                                     </div>
                                 </div>
+
+                                <div class="currency-switcher">
+                                    <form action="{{ route('currency.switch') }}" method="POST" id="currency-switcher-form">
+                                        @csrf
+                                        <select name="currency_code" id="currency-switcher" onchange="switchCurrency()">
+                                            @foreach ($supportedCurrencies as $currency)
+                                                <option value="{{ $currency }}" {{ $currency == $userCurrency ? 'selected' : '' }}>
+                                                    {{ $currency }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </form>
+                                </div>
+
+<script>
+function switchCurrency() {
+    document.getElementById('currency-switcher-form').submit();
+}
+</script>
 
                                 <div class="duration-text">
                                     <div class="duration-first">
@@ -351,7 +370,25 @@
             const priceOptions = document.querySelectorAll(".price-option");
             const durationDisplay = document.getElementById("selected-duration");
             const priceDisplay = document.getElementById("selected-price");
-            // const checkoutBtn = document.getElementById('checkout-btn');
+            const userCurrency = "{{ $userCurrency }}";
+            const currencySymbols = {
+                'USD': '$',
+                'EUR': '€',
+                'GBP': '£',
+                'JPY': '¥',
+                'NGN': '₦',
+                'GHS': '₵',
+                'KES': 'KSh',
+                'ZAR': 'R',
+                'EGP': 'E£',
+                'MAD': 'DH',
+                'CAD': 'C$',
+                'AUD': 'A$',
+                'CHF': 'CHF',
+                'CNY': '¥',
+                'INR': '₹'
+            };
+            const symbol = currencySymbols[userCurrency] || userCurrency;
 
             priceOptions.forEach((option) => {
                 option.addEventListener("click", function() {
@@ -375,7 +412,7 @@
                     const price = this.getAttribute("data-price");
 
                     durationDisplay.textContent = `${duration} Minutes`;
-                    priceDisplay.textContent = `$${price}`;
+                    priceDisplay.textContent = `${symbol}${parseFloat(price).toFixed(2)}`;
 
                     // Enable checkout button
                     // checkoutBtn.disabled = false;

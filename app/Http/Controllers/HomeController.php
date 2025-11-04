@@ -427,15 +427,16 @@ class HomeController extends Controller
 
         // Get the selected gig features
         $data['selectedFeatureIds'] = (array) $request->query('features');
-        // $data['selectedGig'] = GigFeature::where('gig_id', $gig_id)
-        //     ->pluck('gig_id')
-        //     ->toArray();
 
-        // $equipmentId = $gig->equipmentPrice->equipment_id ?? null;
-        // $data['selectedEquipmentPrices'] = $equipmentId
-        //     ? EquipmentPrice::where('equipment_id', $equipmentId)->get()
-        //     : collect();
-        // dd($data['selectedFeatureIds']);
+        // Currency
+        $userCurrency = Auth::check() ? Auth::user()->currency_preference : Session::get('currency_preference');
+        if (!$userCurrency) {
+            $userCurrency = config('currency.default');
+        }
+
+        $data['userCurrency'] = $userCurrency;
+        $data['supportedCurrencies'] = getSupportedCurrencies();
+
         return view('pages.booking-details', $data);
     }
 

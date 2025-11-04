@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            $table->string('feedback_tool')->nullable();
-        });
+        if (!Schema::hasColumn('clients', 'feedback_tool')) {
+            Schema::table('clients', function (Blueprint $table) {
+                $table->string('feedback_tool')->nullable();
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ikoro_clients', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('clients', 'feedback_tool')) {
+            Schema::table('clients', function (Blueprint $table) {
+                $table->dropColumn('feedback_tool');
+            });
+        }
     }
 };

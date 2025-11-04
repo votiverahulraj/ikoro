@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tokens', function (Blueprint $table) {
-            $table->id();
-            $table->string('title'); // Title of the token
-            $table->foreignId('user_id')->nullable()->references('id')->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('cascade'); // Foreign key for user_id
-            $table->tinyInteger('status')->default(0)->comment('0 = Open, 1 = Close'); // Token status
-            $table->tinyInteger('awaiting_reply')->default(1)->comment('1 = User Reply, 2 = Admin Reply'); // Awaiting reply status
-            $table->timestamps();
-
-        });
+        if (!Schema::hasTable('tokens')) {
+            Schema::create('tokens', function (Blueprint $table) {
+                $table->id();
+                $table->string('title'); // Title of the token
+                $table->foreignId('user_id')->nullable()->references('id')->on('users')
+                    ->onUpdate('cascade')
+                    ->onDelete('cascade'); // Foreign key for user_id
+                $table->tinyInteger('status')->default(0)->comment('0 = Open, 1 = Close'); // Token status
+                $table->tinyInteger('awaiting_reply')->default(1)->comment('1 = User Reply, 2 = Admin Reply'); // Awaiting reply status
+                $table->timestamps();
+            });
+        }
     }
 
     /**

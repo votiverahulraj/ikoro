@@ -70,10 +70,7 @@ Route::get('cookie-policy', function () {
 })->name('cookiePolicy');
 
 // Currency routes
-Route::post('/currency/switch', [CurrencyController::class, 'switch'])->name('currency.switch');
-Route::get('/currency/rates', [CurrencyController::class, 'getRates'])->name('currency.rates');
-Route::post('/currency/convert', [CurrencyController::class, 'convert'])->name('currency.convert');
-Route::get('/currency/current', [CurrencyController::class, 'getCurrentCurrency'])->name('currency.current');
+Route::post('/currency/switch', [CurrencyController::class, 'switchCurrency'])->name('currency.switch');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
